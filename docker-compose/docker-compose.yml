@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.2
+    container_name: elasticsearch
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1G
+        reservations:
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms750m -Xmx750m"
+    healthcheck:
+      test: curl -s http://elasticsearch:9200 >/dev/null || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - default
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.4.2
+    container_name: kibana
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1G
+        reservations:
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    depends_on:
+      - elasticsearch
+    environment:
+      - NODE_OPTIONS="--max-old-space-size=750"
+    healthcheck:
+      test: curl -s http://kibana:5601 >/dev/null || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - default
+    ports:
+      - "5601:5601"
+    volumes:
+      - $PWD/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - kibana:/usr/share/kibana/data
+
+networks:
+  default:
+    driver: bridge
+
+volumes:
+  elasticsearch:
+    driver: local
+    name: elasticsearch
+  kibana:
+    driver: local
+    name: kibana
