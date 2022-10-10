@@ -3,12 +3,27 @@ defmodule Searching.Generator do
   require Logger
 
   @elasticsearch "http://localhost:9200"
-  @index "idx"
   @doc_type "_doc"
+  # @kapp "879932f2-48d2-11ed-b878-0242ac120002"
+  # @index "#{@kapp}"
+  @index "idx"
+
+  @forms [
+    "f72a122c-48d1-11ed-8778-8ec475188a40",
+    "f72a087c-48d1-11ed-b197-8ec475188a40",
+    "f72a0c28-48d1-11ed-be08-8ec475188a40"
+  ]
+
 
   def create(doc_id) do
+    creator = Faker.Internet.free_email()
     data = %{
       "id" => doc_id,
+      "form_id" => List.first(Enum.take_random(@forms, 1)),
+      "createdAt" => DateTime.utc_now(),
+      "createdBy" => creator,
+      "updatedAt" => DateTime.utc_now(),
+      "updatedBy" => creator,
       "values" => %{
         "First Name" => Faker.Person.En.first_name(),
         "Last Name" => Faker.Person.En.last_name(),
@@ -33,6 +48,8 @@ defmodule Searching.Generator do
   def update(doc_id) do
     data = %{
       "doc" => %{
+        "updatedAt" => DateTime.utc_now(),
+        "updatedBy" => Faker.Internet.free_email(),
         "values" => %{
           "Timestamp" => DateTime.utc_now()
         }
@@ -46,8 +63,6 @@ defmodule Searching.Generator do
     case HTTPoison.post(url, Jason.encode!(data), headers) do
       {:ok, %{body: _body, status_code: 200}} ->
         Logger.info("Updated document #{doc_id}")
-        Process.sleep(1000)
-        update(doc_id)
 
       {:ok, %{body: _body, status_code: status_code}} ->
         Logger.warning("Failed to update the document #{doc_id}: (#{status_code})")
@@ -131,7 +146,7 @@ defmodule Searching.Generator do
 
   def start do
     # Task.async(fn () -> bot(10, 60) end)
-    Task.async(fn () -> generate(10) end)
+    Task.async(fn () -> generate(60) end)
     # Task.async(fn () -> display_segments(1000) end)
   end
 end
