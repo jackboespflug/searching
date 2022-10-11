@@ -19,7 +19,7 @@ defmodule Searching.Generator do
     creator = Faker.Internet.free_email()
     data = %{
       "id" => doc_id,
-      "form_id" => List.first(Enum.take_random(@forms, 1)),
+      "form_id" => Enum.take_random(@forms, 1) |> List.first(),
       "createdAt" => DateTime.utc_now(),
       "createdBy" => creator,
       "updatedAt" => DateTime.utc_now(),
@@ -37,8 +37,9 @@ defmodule Searching.Generator do
         Logger.info("Created document: #{body["_id"]}")
         body["_id"]
 
-      {:ok, %{body: _body, status_code: status_code}} ->
-        Logger.warning("Failed to create the document: (#{status_code})")
+      {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
+        {:ok, curl} = HTTPoison.Request.to_curl(req)
+        Logger.warning("Failed to create the document: (#{status_code})\n\t#{curl}")
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("ERROR creating document: #{reason}")
@@ -65,8 +66,9 @@ defmodule Searching.Generator do
       {:ok, %{body: _body, status_code: 200}} ->
         Logger.info("Updated document #{doc_id}")
 
-      {:ok, %{body: _body, status_code: status_code}} ->
-        Logger.warning("Failed to update the document #{doc_id}: (#{status_code})")
+      {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
+        {:ok, curl} = HTTPoison.Request.to_curl(req)
+        Logger.warning("Failed to update the document #{doc_id} (#{status_code})\n\t#{curl}")
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("ERROR updating document #{doc_id}: #{reason}")
@@ -124,8 +126,9 @@ defmodule Searching.Generator do
         |> Enum.map(fn {k,v} -> {k, [v["num_docs"], v["deleted_docs"]]} end)
         |> Enum.into(%{})
 
-      {:ok, %{body: _body, status_code: status_code}} ->
-        Logger.warning("Failed to get segments: (#{status_code})")
+      {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
+        {:ok, curl} = HTTPoison.Request.to_curl(req)
+        Logger.warning("Failed to get segments: (#{status_code})\n\t#{curl}")
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("ERROR failed to get segments: #{reason}")
@@ -134,11 +137,12 @@ defmodule Searching.Generator do
 
   def get_stats() do
     case HTTPoison.get("#{@elasticsearch}/#{@index}/_stats") do
-      {:ok, %{body: body, status_code: 200}} ->
+      {:ok, %HTTPoison.Response{body: body, status_code: 200, request: _req}} ->
         Jason.decode!(body)
 
-      {:ok, %{body: _body, status_code: status_code}} ->
-        Logger.warning("Failed to get stats: (#{status_code})")
+      {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
+        {:ok, curl} = HTTPoison.Request.to_curl(req)
+        Logger.warning("Failed to get stats (#{status_code})\n\t#{curl}")
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("ERROR failed to get stats: #{reason}")
