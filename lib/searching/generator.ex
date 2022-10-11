@@ -107,14 +107,7 @@ defmodule Searching.Generator do
   end
 
 
-  def display_segments(sleep_millis) do
-    segments = get_segments()
-    Logger.info(inspect(segments))
-    Process.sleep(sleep_millis)
-    display_segments(sleep_millis)
-  end
-
-  def get_segments() do
+  def display_segments() do
     case HTTPoison.get("#{@elasticsearch}/#{@index}/_segments") do
       {:ok, %{body: body, status_code: 200}} ->
         Map.values(get_in(Jason.decode!(body), ["indices", @index, "shards"]))
@@ -151,6 +144,5 @@ defmodule Searching.Generator do
   def start do
     # Task.async(fn () -> bot(10, 60) end)
     Task.async(fn () -> generate(360) end)
-    # Task.async(fn () -> display_segments(1000) end)
   end
 end
