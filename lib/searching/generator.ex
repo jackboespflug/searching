@@ -4,9 +4,8 @@ defmodule Searching.Generator do
 
   @elasticsearch "http://localhost:9200"
   @doc_type "_doc"
-  # @kapp "879932f2-48d2-11ed-b878-0242ac120002"
-  # @index "#{@kapp}"
-  @index "idx"
+  @kapp "879932f2-48d2-11ed-b878-0242ac120002"
+  @index "#{@kapp}"
 
   @forms [
     "f72a122c-48d1-11ed-8778-8ec475188a40",
@@ -151,7 +150,7 @@ defmodule Searching.Generator do
 
   def start do
     # Task.async(fn () -> bot(10, 60) end)
-    Task.async(fn () -> generate(60) end)
+    Task.async(fn () -> generate(360) end)
     # Task.async(fn () -> display_segments(1000) end)
   end
 end
