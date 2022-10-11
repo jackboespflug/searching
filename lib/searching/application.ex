@@ -13,7 +13,8 @@ defmodule Searching.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Searching.PubSub},
       # Start the Endpoint (http/https)
-      SearchingWeb.Endpoint
+      SearchingWeb.Endpoint,
+      Searching.Runner
       # Start a worker by calling: Searching.Worker.start_link(arg)
       # {Searching.Worker, arg}
     ]

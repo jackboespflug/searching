@@ -43,7 +43,8 @@ defmodule Searching.MixProject do
       {:faker, "~> 0.17.0"},
       {:poison, "~> 4.0"},
       {:httpoison, "~> 1.8"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:corsica, "~> 1.0"}
     ]
   end
 

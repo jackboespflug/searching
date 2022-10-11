@@ -1,5 +1,4 @@
 defmodule Searching.Generator do
-
   @elasticsearch "http://localhost:9200"
   @index "idx"
   @doc_type "_doc"
@@ -10,11 +9,14 @@ defmodule Searching.Generator do
       values: %{
         "First Name": Faker.Person.En.first_name(),
         "Last Name": Faker.Person.last_name(),
-        "State": Faker.Address.En.state(),
-        "Age": :rand.uniform(100)
+        State: Faker.Address.En.state(),
+        Age: :rand.uniform(100)
       }
     }
-    {:ok, %HTTPoison.Response{body: body}} = Elastix.Document.index(@elasticsearch, @index, @doc_type, Map.get(data, :id), data)
+
+    {:ok, %HTTPoison.Response{body: body}} =
+      Elastix.Document.index(@elasticsearch, @index, @doc_type, Map.get(data, :id), data)
+
     IO.puts("Created document: #{Map.get(body, "_id")}")
   end
 
@@ -22,16 +24,18 @@ defmodule Searching.Generator do
     data = %{
       doc: %{
         values: %{
-          "Timestamp": DateTime.utc_now()
+          Timestamp: DateTime.utc_now()
         }
       }
     }
 
     # Elastix.Document.update\5 seems broken, so using straight http
-    {:ok, _res} = HTTPoison.post(
+    {:ok, _res} =
+      HTTPoison.post(
         "#{@elasticsearch}/#{@index}/_update/#{doc_id}",
         Jason.encode!(data),
-        [{:"Content-Type", "application/json"}])
+        [{:"Content-Type", "application/json"}]
+      )
 
     IO.puts("Updated document #{doc_id}")
   end
@@ -48,7 +52,7 @@ defmodule Searching.Generator do
 
   def generate(rate_per_minute) do
     # create(UUID.uuid1())
-    Task.async(fn () -> bot(10, 60) end)
+    Task.async(fn -> bot(10, 60) end)
     delay(rate_per_minute)
     generate(rate_per_minute)
   end
@@ -64,9 +68,8 @@ defmodule Searching.Generator do
   def bot_update(doc_id, remaining_updates, rate) do
     delay(rate)
     update(doc_id)
-    bot_update(doc_id, remaining_updates-1, rate)
+    bot_update(doc_id, remaining_updates - 1, rate)
   end
-
 
   def display_segments(millis) do
     display_segments()
@@ -75,24 +78,22 @@ defmodule Searching.Generator do
   end
 
   def display_segments() do
-
     {:ok, %{body: body, status_code: 200}} =
       HTTPoison.get("#{@elasticsearch}/#{@index}/_segments")
 
-    segments = Map.values(get_in(Jason.decode!(body), ["indices", @index, "shards"]))
+    segments =
+      Map.values(get_in(Jason.decode!(body), ["indices", @index, "shards"]))
       |> Enum.flat_map(&Function.identity/1)
       |> Enum.map(fn map -> Map.get(map, "segments") end)
       |> Enum.flat_map(&Function.identity/1)
       |> Enum.into(%{})
-      |> Enum.map(fn {k,v} -> {k, {Map.get(v, "num_docs"), Map.get(v, "deleted_docs")}} end)
+      |> Enum.map(fn {k, v} -> {k, [Map.get(v, "num_docs"), Map.get(v, "deleted_docs")]} end)
       |> Enum.into(%{})
-
-    IO.inspect(segments)
   end
 
   def start do
     # Task.async(fn () -> bot(10, 60) end)
-    Task.async(fn () -> generate(60) end)
-    Task.async(fn () -> display_segments(1000) end)
+    Task.async(fn -> generate(60) end)
+    Task.async(fn -> display_segments(1000) end)
   end
 end
