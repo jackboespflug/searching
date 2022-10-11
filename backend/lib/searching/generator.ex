@@ -33,7 +33,7 @@ defmodule Searching.Generator do
 
     case Elastix.Document.index(@elasticsearch, @index, @doc_type, data["id"], data) do
       {:ok, %{body: body, status_code: 201}} ->
-        Logger.info("Created document: #{body["_id"]}")
+        # Logger.info("Created document: #{body["_id"]}")
         body["_id"]
 
       {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
@@ -63,7 +63,8 @@ defmodule Searching.Generator do
 
     case HTTPoison.post(url, Jason.encode!(data), headers) do
       {:ok, %{body: _body, status_code: 200}} ->
-        Logger.info("Updated document #{doc_id}")
+        # Logger.info("Updated document #{doc_id}")
+        doc_id
 
       {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
         {:ok, curl} = HTTPoison.Request.to_curl(req)
@@ -139,6 +140,24 @@ defmodule Searching.Generator do
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("ERROR failed to get stats: #{reason}")
     end
+  end
+
+  def get_count(rate_per_minute) do
+    case HTTPoison.get("#{@elasticsearch}/#{@index}/_count") do
+      {:ok, %HTTPoison.Response{body: body, status_code: 200, request: _req}} ->
+        content = Jason.decode!(body)
+        # Logger.info("Counted #{content["count"]} indexed documents")
+        content["count"]
+
+      {:ok, %HTTPoison.Response{body: _body, status_code: status_code, request: req}} ->
+        {:ok, curl} = HTTPoison.Request.to_curl(req)
+        Logger.warning("Failed to get count (#{status_code})\n\t#{curl}")
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        Logger.error("ERROR failed to get count: #{reason}")
+    end
+    delay(rate_per_minute)
+    get_count(rate_per_minute)
   end
 
   def start do

@@ -28,7 +28,7 @@ cd ..
 
 A Phoenix based Elixir application provides a data generator to create and update documents in ElasticSearch.
 
-## Frontend
+## React Frontend
 
 A React based Javascript application provides controls to start / stop data generation and graphs to display ElasticSearch segment utilization.
 

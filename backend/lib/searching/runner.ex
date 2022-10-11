@@ -22,12 +22,13 @@ defmodule Searching.Runner do
   ### CALLBACKS
 
   def init(_init_arg) do
-    {:ok, %{running: false}}
+    count_task = Task.async(fn () -> Searching.Generator.get_count(90) end)
+    {:ok, %{running: false, count_task: count_task}}
   end
 
   def handle_cast({:start}, %{running: false} = state) do
-    task = Task.async(fn -> Searching.Generator.generate(60) end)
-    {:noreply, state |> Map.put(:running, true) |> Map.put(:task, task)}
+    generate_task = Task.async(fn -> Searching.Generator.generate(360) end)
+    {:noreply, state |> Map.put(:running, true) |> Map.put(:generate_task, generate_task)}
   end
 
   def handle_cast({:start}, state) do
@@ -35,7 +36,7 @@ defmodule Searching.Runner do
   end
 
   def handle_cast({:stop}, %{running: true} = state) do
-    Task.shutdown(Map.get(state, :task))
+    Task.shutdown(Map.get(state, :generate_task))
     {:noreply, Map.put(state, :running, false)}
   end
 
