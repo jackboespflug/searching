@@ -1,18 +1,55 @@
 # Searching
 
-To start your Phoenix server:
+Spike to investigate ElasticSearch segments when updating documents.
 
-  * Install dependencies with `mix deps.get`
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## Docker Compose
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+A docker compose file exists to facilitate the ElasticSearch and Kibana components.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+``` bash command-line
+cd docker-compose
 
-## Learn more
+# start the docker containers either attached to the foreground console, or detached in the background
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+# detached - use docker-compose down to stop
+docker-compose up -d
+docker-compose down
+
+# attached - use ctrl+c to stop
+docker-compose up
+
+# check container status
+docker ps
+
+cd ..
+```
+
+## Phoenix Backend
+
+A Phoenix based Elixir application provides a data generator to create and update documents in ElasticSearch.
+
+## Frontend
+
+A React based Javascript application provides controls to start / stop data generation and graphs to display ElasticSearch segment utilization.
+
+## Running
+
+A bash startup script is provided to facilitate running both the backend and frontend applications.
+
+``` bash command-line
+# start both the Phoenix web app and frontend React app
+./start.sh
+
+# install and compile all dependencies and then start both the Phoenix web app and frontend React app
+./start.sh install
+
+# Stopping the applications
+
+# Find the PIDS of the frontend application and kill it
+lsof -i -n -P | grep LISTEN | grep 3000
+kill PID
+
+# Find the PIDs of the backend application, and kill it
+lsof -i -n -P | grep LISTEN | grep 4000
+kill PID
+```
