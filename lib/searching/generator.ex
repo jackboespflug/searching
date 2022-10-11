@@ -56,6 +56,7 @@ defmodule Searching.Generator do
       }
     }
 
+
     # Use straight http because Elastix.Document.update\5 seems broken
     url = "#{@elasticsearch}/#{@index}/_update/#{doc_id}"
     headers = [{:"Content-Type", "application/json"}]
@@ -101,7 +102,7 @@ defmodule Searching.Generator do
   def bot_update(doc_id, remaining_updates, rate) do
     delay(rate)
     update(doc_id)
-    bot_update(doc_id, remaining_updates-1, rate)
+    bot_update(doc_id, remaining_updates - 1, rate)
   end
 
 
@@ -120,7 +121,7 @@ defmodule Searching.Generator do
         |> Enum.map(fn x -> x["segments"] end)
         |> Enum.flat_map(&Function.identity/1)
         |> Enum.into(%{})
-        |> Enum.map(fn {k,v} -> {k, {v["num_docs"], v["deleted_docs"]}} end)
+        |> Enum.map(fn {k,v} -> {k, [v["num_docs"], v["deleted_docs"]]} end)
         |> Enum.into(%{})
 
       {:ok, %{body: _body, status_code: status_code}} ->
