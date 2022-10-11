@@ -4,10 +4,10 @@ Spike to investigate ElasticSearch segments when updating documents.
 
 ## Docker Compose
 
-A docker compose file exists to facilitate the ElasticSearch and Kibana components.
+A docker compose file exists to in the `middleware` directory to facilitate the ElasticSearch and Kibana components.
 
 ``` bash command-line
-cd docker-compose
+cd middleware
 
 # start the docker containers either attached to the foreground console, or detached in the background
 
